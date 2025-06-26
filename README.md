@@ -17,6 +17,7 @@ Este repositório contém as soluções do Trabalho Computacional 02 da discipli
 * Rosana Celine Pinheiro Damaceno
 * Thaís Araújo de Paiva
 * Thalyta Lima Rodrigues
+* João Pedro Silva Fialho
 
  ## 📋 Requisitos ou Instruções
 
