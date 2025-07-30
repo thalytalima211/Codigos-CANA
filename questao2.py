@@ -1,3 +1,5 @@
+# Questão 02 - Responsável: Thalyta Lima Rodrigues
+
 class Node:
     def __init__(self, value):
         self.value = value

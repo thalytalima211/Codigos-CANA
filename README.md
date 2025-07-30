@@ -15,13 +15,14 @@ Este repositório contém as soluções do Trabalho Computacional 02 da discipli
 * Cláudia Ferreira de Sousa
 * Lais Carvalho Coutinho
 * Rosana Celine Pinheiro Damaceno
-* Thaís Araújo de Paiva
 * Thalyta Lima Rodrigues
 * João Pedro Silva Fialho
 
  ## 📋 Requisitos ou Instruções
-
-* Insira uma lista de requisitos de software para usar executar seus programas ou orientações que considere pertinente
+Para exibição dos gráficos das questões A e B, instale a biblioteca matplotlib do Python com o comando:
+```
+pip install matplotlib
+```
 
 
 ## 👏 Contato

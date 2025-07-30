@@ -1,3 +1,5 @@
+# Questão A - Responsável: Thalyta Lima Rodrigues
+
 import matplotlib.pyplot as plt
 import random
 import time
