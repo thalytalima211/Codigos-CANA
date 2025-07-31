@@ -1,5 +1,5 @@
 import random
-import time
+import timeit
 import matplotlib.pyplot as plt
 
 def generate_array(size):
@@ -14,14 +14,10 @@ def linear_search(arr, key):
 def linear_search_sentinel(arr, key):
     arr.append(key)
     i = 0
-    while True:
-        if arr[i] == key:
-            break
+    while arr[i] != key:
         i += 1
     arr.pop()
-    if i == len(arr):
-        return -1
-    return i
+    return i if i != len(arr) else -1
 
 def binary_search(arr, key):
     low = 0
@@ -61,23 +57,19 @@ for size in sizes:
     array = generate_array(size)  
     array[-1] = key
 
-    start = time.perf_counter()
-    linear_search(array.copy(), key)
-    times_linear.append(time.perf_counter() - start)
+    time_linear = timeit.timeit(lambda: linear_search(array.copy(), key), number=100)
+    times_linear.append(time_linear / 100)
 
-    start = time.perf_counter()
-    linear_search_sentinel(array.copy(), key)
-    times_sentinel.append(time.perf_counter() - start)
+    time_sentinel = timeit.timeit(lambda: linear_search_sentinel(array.copy(), key), number=100)
+    times_sentinel.append(time_sentinel / 100)
 
     sorted_array = sorted(array)
 
-    start = time.perf_counter()
-    binary_search(sorted_array, key)
-    times_binary.append(time.perf_counter() - start)
+    time_bin = timeit.timeit(lambda: binary_search(sorted_array, key), number=100)
+    time_fast = timeit.timeit(lambda: fast_binary_search(sorted_array, key), number=100)
 
-    start = time.perf_counter()
-    fast_binary_search(sorted_array, key)
-    times_fast_binary.append(time.perf_counter() - start)
+    times_binary.append(time_bin / 100)         # Tempo médio de uma execução
+    times_fast_binary.append(time_fast / 100)
 
 plt.figure(figsize=(12, 6))
 plt.plot(sizes, times_linear, label='Busca Linear')
@@ -87,6 +79,20 @@ plt.plot(sizes, times_fast_binary, label='Busca Binária Rápida')
 plt.xlabel('Tamanho do vetor')
 plt.ylabel('Tempo de execução (s)')
 plt.title('Comparação entre o tempo de execução das buscas')
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+plt.figure(figsize=(12, 6))
+plt.plot(sizes, times_linear, label='Busca Linear')
+plt.plot(sizes, times_sentinel, label='Busca Linear com Sentinela')
+plt.plot(sizes, times_binary, label='Busca Binária')
+plt.plot(sizes, times_fast_binary, label='Busca Binária Rápida')
+plt.xlabel('Tamanho do vetor')
+plt.ylabel('Tempo de execução (s, em escala logarítimica)')
+plt.yscale('log')
+plt.title('Comparação entre o tempo de execução das buscas em escala logarítimica')
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
