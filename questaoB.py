@@ -68,7 +68,7 @@ for size in sizes:
     time_bin = timeit.timeit(lambda: binary_search(sorted_array, key), number=100)
     time_fast = timeit.timeit(lambda: fast_binary_search(sorted_array, key), number=100)
 
-    times_binary.append(time_bin / 100)         # Tempo médio de uma execução
+    times_binary.append(time_bin / 100)
     times_fast_binary.append(time_fast / 100)
 
 plt.figure(figsize=(12, 6))
