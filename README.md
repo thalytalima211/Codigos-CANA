@@ -40,3 +40,4 @@ prática. Rio de Janeiro: Elsevier, 2002.
 * ZIVIANI, Nivio. Projeto de Algoritmos: com 
 implementações em Java e C++. 1ª edição. São Paulo:
 Cengage Learning, 2013.
+* GeeksForGeeks, Binary Search on Singly Linked List. Disponível em: https://www.geeksforgeeks.org/dsa/binary-search-on-singly-linked-list/
