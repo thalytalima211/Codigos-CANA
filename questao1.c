@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 /* 
 Implemente uma função em C que dado um array de tamanho N dessa estrutura 
@@ -8,59 +9,65 @@ Implemente uma função em C que dado um array de tamanho N dessa estrutura
 Cada campo deve ser ordenado por um método distinto. 
 */
 
+// Estrutura principal
 struct pessoa {
-    int Matricula;
-    char Nome[30];
-    float Nota;
+    int matricula;
+    char nome[30];
+    float nota;
 };
 
-void trocar(struct pessoa *a, struct pessoa *b);
-void imprimir(struct pessoa *vetor, int n);
-int comparar(struct pessoa a, struct pessoa b, int campo);
+// ---------- Protótipos das funções ----------
+// Para Matricula
+void ordenarPorRadix(struct pessoa *pessoas, int n);
+int obterDigito(int valor, int w, int base);
 
-// QuickSort para Matricula
-void quickSort(struct pessoa *vetor, int baixo, int alto);
-int particionar(struct pessoa *vetor, int baixo, int alto);
+// Para Nome
+void ordenarPorMerge(struct pessoa *pessoas, int esquerda, int direita);
+void mesclarPorNome(struct pessoa *pessoas, int esquerda, int meio, int direita);
 
-// MergeSort para Nome
-void mergeSort(struct pessoa *vetor, int esq, int dir);
-void merge(struct pessoa *vetor, int esq, int meio, int dir);
+// Para Nota
+void ordenarPorShell(struct pessoa *pessoas, int n);
 
-// InsertionSort para Nota
-void insertionSort(struct pessoa *vetor, int n);
+// ====================== MAIN ======================
 
 int main() {
-    int n, campo;
+    int n, opcao;
 
     printf("Digite o número de pessoas: ");
     scanf("%d", &n);
-    struct pessoa *vetor = malloc(n * sizeof(struct pessoa));
 
+    struct pessoa *pessoas = malloc(n * sizeof(struct pessoa));
+
+    // Leitura dos dados
     for (int i = 0; i < n; i++) {
-        printf("Pessoa %d:\n", i+1);
-        printf("Matrícula: "); scanf("%d", &vetor[i].Matricula);
-        printf("Nome: "); scanf(" %[^\n]", vetor[i].Nome);
-        printf("Nota: "); scanf("%f", &vetor[i].Nota);
+        printf("\nPessoa %d:\n", i + 1);
+        printf("Matrícula: ");
+        scanf("%d", &pessoas[i].matricula);
+        printf("Nome: ");
+        scanf("%s", pessoas[i].nome);
+        printf("Nota: ");
+        scanf("%f", &pessoas[i].nota);
     }
 
+    // Menu de opções
     do {
-        printf("\nComo deseja ordenar o vetor?\n");
+        printf("\nComo deseja ordenar?\n");
+        printf("1 - Matrícula (Radix Sort)\n");
+        printf("2 - Nome (Merge Sort)\n");
+        printf("3 - Nota (Shell Sort - decrescente)\n");
         printf("0 - Encerrar\n");
-        printf("1 - Ordenar por Matrícula (QuickSort)\n");
-        printf("2 - Ordenar por Nome (MergeSort)\n");
-        printf("3 - Ordenar por Nota (InsertionSort)\n");
         printf("Escolha: ");
-        scanf("%d", &campo);
-    
-        switch (campo) {
+        scanf("%d", &opcao);
+
+        switch (opcao) {
             case 1:
-                quickSort(vetor, 0, n - 1);
+                ordenarPorRadix(pessoas, n);
                 break;
             case 2:
-                mergeSort(vetor, 0, n - 1);
+                ordenarPorMerge(pessoas, 0, n - 1);
                 break;
             case 3:
-                insertionSort(vetor, n);
+                ordenarPorShell(pessoas, n);
                 break;
             case 0:
                 printf("Encerrando...\n");
@@ -69,100 +76,163 @@ int main() {
                 printf("Opção inválida.\n");
         }
 
-        if (campo >= 1 && campo <= 3) {
-            printf("\n--- Resultado ordenado ---\n");
-            imprimir(vetor, n);
+        // Exibe o resultado apenas se o usuário não escolheu sair
+        if (opcao != 0) {
+            printf("\n--- Lista Ordenada ---\n");
+            for (int i = 0; i < n; i++)
+                printf("%d | %s | %.2f\n", pessoas[i].matricula, pessoas[i].nome, pessoas[i].nota);
         }
-    
-    } while (campo != 0);
 
-    free(vetor);
+    } while (opcao != 0);
+
+    free(pessoas);
     return 0;
 }
 
-void trocar(struct pessoa *a, struct pessoa *b) {
-    struct pessoa temp = *a;
-    *a = *b;
-    *b = temp;
+// ====================== RADIX SORT ======================
+
+// Função auxiliar para obter o dígito em determinada posição (coluna w)
+// Exemplo: se valor=123 e w=0 (unidade) → retorna 3
+//          se w=1 (dezena) → retorna 2
+int obterDigito(int valor, int w, int base) {
+    int i = -1, digito;
+    do {
+        i++;
+        digito = valor % base;  // Obtém o dígito menos significativo
+        valor /= base;          // Remove o último dígito
+    } while (i != w);           // Repete até chegar na posição desejada
+    return digito;
 }
 
-void imprimir(struct pessoa *vetor, int n) {
-    for (int i = 0; i < n; i++) {
-        printf("Matrícula: %d | Nome: %s | Nota: %.2f\n",
-               vetor[i].Matricula, vetor[i].Nome, vetor[i].Nota);
+// Implementação do Radix Sort para ordenar por matrícula
+// O algoritmo ordena os números por cada dígito, da menor ordem (unidade) para a maior.
+void ordenarPorRadix(struct pessoa *pessoas, int n) {
+    int base = 10;   // Sistema decimal
+    int num_digitos = 0;
+
+    // Descobre o maior número de matrícula para saber quantos dígitos ele tem
+    int maior = pessoas[0].matricula;
+    for (int i = 1; i < n; i++)
+        if (pessoas[i].matricula > maior)
+            maior = pessoas[i].matricula;
+
+    while (maior > 0) {
+        maior /= 10;
+        num_digitos++;
     }
-}
 
-// ---------- Funções QuickSort (Matrícula) ----------
-void quickSort(struct pessoa *vetor, int baixo, int alto) {
-    if (baixo < alto) {
-        int pi = particionar(vetor, baixo, alto);
-        quickSort(vetor, baixo, pi - 1);
-        quickSort(vetor, pi + 1, alto);
-    }
-}
+    // Vetores auxiliares
+    struct pessoa *aux = malloc(n * sizeof(struct pessoa));
+    int *count = malloc(base * sizeof(int));
+    int *posicao = malloc(base * sizeof(int));
 
-int particionar(struct pessoa *vetor, int baixo, int alto) {
-    struct pessoa pivo = vetor[alto];
-    int i = baixo - 1;
+    // Para cada dígito (unidade, dezena, centena...)
+    for (int w = 0; w < num_digitos; w++) {
 
-    for (int j = baixo; j < alto; j++) {
-        if (vetor[j].Matricula < pivo.Matricula) {
-            i++;
-            trocar(&vetor[i], &vetor[j]);
+        // Inicializa os vetores de contagem e posição
+        for (int j = 0; j < base; j++) {
+            count[j] = 0;
+            posicao[j] = 0;
         }
+
+        // Conta quantos elementos possuem cada dígito na posição w
+        for (int i = 0; i < n; i++) {
+            int d = obterDigito(pessoas[i].matricula, w, base);
+            count[d]++;
+        }
+
+        // Calcula as posições finais de cada dígito no vetor ordenado
+        for (int j = 1; j < base; j++)
+            posicao[j] = posicao[j-1] + count[j-1];
+
+        // Coloca os elementos na ordem correta em aux
+        for (int i = 0; i < n; i++) {
+            int d = obterDigito(pessoas[i].matricula, w, base);
+            aux[posicao[d]++] = pessoas[i];
+        }
+
+        // Copia o vetor auxiliar de volta para pessoas
+        for (int i = 0; i < n; i++)
+            pessoas[i] = aux[i];
     }
 
-    trocar(&vetor[i + 1], &vetor[alto]);
-    return i + 1;
+    free(aux);
+    free(count);
+    free(posicao);
 }
 
-// ---------- Funções MergeSort (Nome) ----------
-void mergeSort(struct pessoa *vetor, int esq, int dir) {
-    if (esq < dir) {
-        int meio = (esq + dir) / 2;
-        mergeSort(vetor, esq, meio);
-        mergeSort(vetor, meio + 1, dir);
-        merge(vetor, esq, meio, dir);
-    }
-}
+// ====================== MERGE SORT ======================
 
-void merge(struct pessoa *vetor, int esq, int meio, int dir) {
-    int n1 = meio - esq + 1;
-    int n2 = dir - meio;
+// Função que mescla dois subvetores já ordenados (usando nomes como critério)
+void mesclarPorNome(struct pessoa *pessoas, int esquerda, int meio, int direita) {
+    int tamanho = direita - esquerda + 1;
+    struct pessoa *temp = malloc(tamanho * sizeof(struct pessoa));
 
-    struct pessoa *L = malloc(n1 * sizeof(struct pessoa));
-    struct pessoa *R = malloc(n2 * sizeof(struct pessoa));
+    int p1 = esquerda;    // Ponteiro da metade esquerda
+    int p2 = meio + 1;    // Ponteiro da metade direita
+    int i = 0;
 
-    for (int i = 0; i < n1; i++) L[i] = vetor[esq + i];
-    for (int j = 0; j < n2; j++) R[j] = vetor[meio + 1 + j];
-
-    int i = 0, j = 0, k = esq;
-    while (i < n1 && j < n2) {
-        if (strcmp(L[i].Nome, R[j].Nome) <= 0)
-            vetor[k++] = L[i++];
+    // Compara os elementos das duas metades e coloca em ordem
+    while (p1 <= meio && p2 <= direita) {
+        if (strcmp(pessoas[p1].nome, pessoas[p2].nome) < 0)
+            temp[i++] = pessoas[p1++];
         else
-            vetor[k++] = R[j++];
+            temp[i++] = pessoas[p2++];
     }
 
-    while (i < n1) vetor[k++] = L[i++];
-    while (j < n2) vetor[k++] = R[j++];
+    // Copia os elementos restantes (se houver)
+    while (p1 <= meio) temp[i++] = pessoas[p1++];
+    while (p2 <= direita) temp[i++] = pessoas[p2++];
 
-    free(L);
-    free(R);
+    // Copia de volta para o vetor original
+    for (i = 0; i < tamanho; i++)
+        pessoas[esquerda + i] = temp[i];
+
+    free(temp);
 }
 
-// ---------- Funções InsertionSort (Nota) ----------
-void insertionSort(struct pessoa *vetor, int n) {
-    for (int i = 1; i < n; i++) {
-        struct pessoa key = vetor[i];
-        int j = i - 1;
+// Função recursiva do Merge Sort
+void ordenarPorMerge(struct pessoa *pessoas, int esquerda, int direita) {
+    if (esquerda < direita) {
+        int meio = floor((esquerda + direita) / 2);
 
-        while (j >= 0 && vetor[j].Nota > key.Nota) {
-            vetor[j + 1] = vetor[j];
-            j--;
-        }
+        // Ordena a primeira metade
+        ordenarPorMerge(pessoas, esquerda, meio);
 
-        vetor[j + 1] = key;
+        // Ordena a segunda metade
+        ordenarPorMerge(pessoas, meio + 1, direita);
+
+        // Mescla as duas metades já ordenadas
+        mesclarPorNome(pessoas, esquerda, meio, direita);
     }
+}
+
+// ====================== SHELL SORT ======================
+
+// Implementação do Shell Sort para ordenar por nota (ordem decrescente)
+void ordenarPorShell(struct pessoa *pessoas, int n) {
+    int gap = 1;
+
+    // Calcula o maior intervalo inicial (gap)
+    do {
+        gap = 3 * gap + 1;
+    } while (gap < n);
+
+    // Enquanto houver intervalos para comparar
+    do {
+        gap /= 3;
+
+        // Faz inserção com gap
+        for (int i = gap; i < n; i++) {
+            struct pessoa temp = pessoas[i];
+            int j = i - gap;
+
+            // Para ordem decrescente, usamos temp.nota > pessoas[j].nota
+            while (j >= 0 && temp.nota > pessoas[j].nota) {
+                pessoas[j + gap] = pessoas[j];
+                j -= gap;
+            }
+            pessoas[j + gap] = temp;
+        }
+    } while (gap > 1);
 }
