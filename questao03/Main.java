@@ -16,7 +16,7 @@ public class Main {
     public static void main(String[] args) {
 		ListaSimplesmenteEncadeada list = new ListaSimplesmenteEncadeada ();
 
-		
+		   //inserindo ordenado manualmente
 		   list.inserir(8); 
 	       list.inserir(12); 
 	       list.inserir(19); 
