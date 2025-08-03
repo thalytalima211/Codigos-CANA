@@ -1,4 +1,4 @@
-# Questão 02 - Responsável: Thalyta Lima Rodrigues
+# Questão 02 - Responsável: Thaís Araújo de Paiva
 
 class Node:
     def __init__(self, value):
